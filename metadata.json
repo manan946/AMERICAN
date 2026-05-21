@@ -1,0 +1,6 @@
+{
+  "name": "American Institute - Rohtak",
+  "description": "Premium educational center specializing in Spoken English, IELTS, PTE, and OET in Rohtak.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

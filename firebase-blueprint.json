@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "student": {
+      "title": "Student",
+      "description": "Details for student ID card and registration",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "course": { "type": "string", "enum": ["Spoken English", "IELTS", "PTE", "OET"] },
+        "idType": { "type": "string", "enum": ["Aadhaar", "PAN"] },
+        "idNumber": { "type": "string" },
+        "uniqueId": { "type": "string" },
+        "isPaid": { "type": "boolean" },
+        "photoUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "course", "idNumber"]
+    }
+  },
+  "firestore": {
+    "/students/{uid}": {
+      "schema": "student",
+      "description": "User profile and student ID data"
+    }
+  }
+}

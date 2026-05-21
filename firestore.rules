@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    function isValidStudent(data) {
+      return data.name is string && data.name.size() <= 100 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.course in ['Spoken English', 'IELTS', 'PTE', 'OET'] &&
+             data.idType in ['Aadhaar', 'PAN'] &&
+             data.idNumber is string && data.idNumber.size() <= 12 &&
+             data.uid == request.auth.uid;
+    }
+
+    match /students/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid) && isValidStudent(incoming()) && 
+                    incoming().isPaid == false &&
+                    incoming().createdAt == request.time;
+      
+      allow update: if isOwner(uid) && (
+        // Action: Update Profile info (except uniqueId, isPaid)
+        (isValidStudent(incoming()) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'course', 'idType', 'idNumber', 'photoUrl'])
+        ) ||
+        // Action: Complete Payment (Verification should be server-side in real apps, 
+        // but for this UI-only verification we allow it with strict constraints)
+        (isValidStudent(incoming()) && 
+         incoming().isPaid == true && 
+         existing().isPaid == false &&
+         incoming().diff(existing()).affectedKeys().hasAll(['isPaid', 'uniqueId']) &&
+         incoming().uniqueId is string && incoming().uniqueId.size() <= 50
+        )
+      );
+    }
+  }
+}
